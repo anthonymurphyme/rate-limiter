@@ -38,7 +38,7 @@ public class TokenBucketImplTest {
     }
 
     @Test
-    public void testConsumingLastRemainingTokenDescreasesAvailableTokensToZero() {
+    public void testConsumingLastRemainingTokenDecreasesAvailableTokensToZero() {
         TokenBucketImpl bucket = new TokenBucketImpl(1);
         assertTrue(bucket.consume());
         assertEquals(0,bucket.getAvailableTokens());
