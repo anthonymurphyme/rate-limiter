@@ -3,6 +3,7 @@ package me.anthonymurphy.ratelimiter;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class TokenBucketImplTest {
 
@@ -28,6 +29,19 @@ public class TokenBucketImplTest {
     public void testAvailableTokensAfterCreation() {
         TokenBucketImpl bucket = new TokenBucketImpl(CAPACITY);
         assertEquals(CAPACITY,bucket.getAvailableTokens());
+    }
+    @Test
+    public void testConsumingTokenDecreasesAvailableTokens() {
+        TokenBucketImpl bucket = new TokenBucketImpl(CAPACITY);
+        assertTrue(bucket.consume());
+        assertEquals(CAPACITY-1,bucket.getAvailableTokens());
+    }
+
+    @Test
+    public void testConsumingLastRemainingTokenDescreasesAvailableTokensToZero() {
+        TokenBucketImpl bucket = new TokenBucketImpl(1);
+        assertTrue(bucket.consume());
+        assertEquals(0,bucket.getAvailableTokens());
     }
 
 }
