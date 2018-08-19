@@ -5,6 +5,7 @@ import java.time.Instant;
 import java.util.concurrent.TimeUnit;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 
 public class TokenBucketImpl implements TokenBucket {
@@ -19,6 +20,8 @@ public class TokenBucketImpl implements TokenBucket {
 
     TokenBucketImpl(Clock clock, long capacity, long period, TimeUnit unit){
         checkArgument(capacity > 0, "Token Bucket Capacity must be greater than 0");
+        checkArgument(period > 0, "Period must be greater than 0");
+        checkNotNull(unit, "TimeUnit must be set");
         this.capacity = capacity;
         this.clock = clock;
         this.period = period;
