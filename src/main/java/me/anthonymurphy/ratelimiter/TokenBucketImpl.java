@@ -74,13 +74,13 @@ public class TokenBucketImpl implements TokenBucket {
     public synchronized void refill() {
         if (canRefillBucket()) {
             availableTokens = capacity;
-            Instant refillTime = Instant.now(this.clock);
+            Instant currentRefillTime = Instant.now(this.clock);
 
             // increment startOfRefillPeriod to be consistent with the current time period rather than current time
             // for example if the period is an hour and refill is called 2 and 1/2 hours after the lest bucket refill,
             // then startOfRefillPeriod is set to startOfRefillPeriod + 2 hours
 
-            long numberOfPeriodsSinceLastRefill = Math.max(0, getPeriodsSinceLastRefil(refillTime));
+            long numberOfPeriodsSinceLastRefill = Math.max(0, getPeriodsSinceLastRefill(currentRefillTime));
             this.startOfRefillPeriod = this.startOfRefillPeriod.plusMillis(numberOfPeriodsSinceLastRefill * getPeriodInMilliseconds());
 
             this.nextRefillTime = startOfRefillPeriod.plusMillis(getPeriodInMilliseconds());
@@ -88,13 +88,28 @@ public class TokenBucketImpl implements TokenBucket {
         }
     }
 
-    private long getPeriodsSinceLastRefil(Instant refillTime) {
+
+    /*
+         Calculates number of periods since last bucket refill
+
+         @param RefillTime current refill time
+         @return Number of periods since last refill
+     */
+
+    private long getPeriodsSinceLastRefill(Instant refillTime) {
         return getMillisecondsSinceLastRefill(refillTime) / getPeriodInMilliseconds();
     }
+
 
     private long getMillisecondsSinceLastRefill(Instant refillTime) {
         return (refillTime.getEpochSecond() - startOfRefillPeriod.getEpochSecond()) * 1000;
     }
+
+    /*
+        Calculates the refill period in milliseconds
+
+        @return The number of milliseconds in the refill period
+     */
 
     private long getPeriodInMilliseconds() {
         return TimeUnit.MILLISECONDS.convert(this.period, this.timeUnit);
