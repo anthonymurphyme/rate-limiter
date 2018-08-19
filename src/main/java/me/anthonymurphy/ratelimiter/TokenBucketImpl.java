@@ -58,6 +58,8 @@ public class TokenBucketImpl implements TokenBucket {
     @Override
     public boolean consume() {
 
+        refill();
+
         if (availableTokens >= 1) {
             availableTokens -= 1;
             return true;
