@@ -18,6 +18,9 @@ public class TokenBucketImpl implements TokenBucket {
     private Instant nextRefillTime;
     private final Clock clock;
 
+    // TODO Convert parameters to RateLimitingPolicy Object
+
+
     TokenBucketImpl(Clock clock, long capacity, long period, TimeUnit unit){
         checkArgument(capacity > 0, "Token Bucket Capacity must be greater than 0");
         checkArgument(period > 0, "Period must be greater than 0");
@@ -71,6 +74,7 @@ public class TokenBucketImpl implements TokenBucket {
         return false;
     }
 
+    // TODO Extract Refill into SimpleRefillStrategy
     /*
         Simple refill strategy, reset the bucket to capacity
 
