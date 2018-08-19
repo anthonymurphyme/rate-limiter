@@ -18,7 +18,7 @@ public class TokenBucketImplTest {
     private static final long PERIOD = 1;
     private static final TimeUnit TIME_UNIT_HOURS = TimeUnit.HOURS;
     private Instant startTime;
-    private TokenBucketImpl bucket;
+    private TokenBucket bucket;
 
     @Before
     public void setUp() {
