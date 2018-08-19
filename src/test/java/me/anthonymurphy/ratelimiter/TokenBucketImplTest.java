@@ -5,6 +5,7 @@ import org.junit.Test;
 
 import java.time.Clock;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.*;
@@ -18,12 +19,13 @@ public class TokenBucketImplTest {
     private static final TimeUnit TIME_UNIT_HOURS = TimeUnit.HOURS;
     private Instant currentTime;
     private TokenBucketImpl bucket;
+    private static final long ONE_HOUR = 60 * 60 * 1000;
 
     @Before
     public void setUp() {
         currentTime = Instant.now();
         final Clock clock = mock(Clock.class);
-        when(clock.instant()).thenAnswer((invocation) -> currentTime);
+        when(clock.instant()).thenAnswer(invocation -> currentTime);
         bucket = new TokenBucketImpl(clock, CAPACITY, PERIOD , TIME_UNIT_HOURS);
     }
 
@@ -77,24 +79,38 @@ public class TokenBucketImplTest {
     }
 
     @Test
-    public void testRefillResetsBucketToCapacity() {
+    public void testAfterCreationNextRefillIsOneHour() {
+        long nextRefillTime = currentTime.toEpochMilli() + ONE_HOUR;
+        assertEquals(nextRefillTime,bucket.getNextRefillTime());
+    }
+
+    @Test
+    public void testBucketIsRefilledIfAfterNextRefillTimeAndNextRefillTimeIsIncremented() {
         assertTrue(bucket.consume());
+        currentTime = currentTime.plus(61, ChronoUnit.MINUTES);
         bucket.refill();
         assertEquals(CAPACITY, bucket.getAvailableTokens());
+        long nextRefillTime = currentTime.plus(59, ChronoUnit.MINUTES).toEpochMilli();
+        assertEquals(nextRefillTime,bucket.getNextRefillTime());
     }
+
+    @Test
+    public void testRefillFailsIfBeforeNextRefillTime() {
+        assertTrue(bucket.consume());
+        currentTime = currentTime.plus(30, ChronoUnit.MINUTES);
+        bucket.refill();
+        assertEquals(CAPACITY-1, bucket.getAvailableTokens());
+    }
+
 
     @Test
     public void testRefillAtCapacity() {
+        currentTime = currentTime.plus(61, ChronoUnit.MINUTES);
         bucket.refill();
         assertEquals(CAPACITY, bucket.getAvailableTokens());
     }
 
-    @Test
-    public void testAfterCreationNextRefillIsOneHour() {
-        long oneHour = 60 * 60 * 1000;
-        long nextRefillTime = currentTime.toEpochMilli() + oneHour;
-        assertEquals(nextRefillTime,bucket.getNextRefillTime());
-    }
+
 
 
 }
