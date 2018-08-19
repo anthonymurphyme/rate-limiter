@@ -6,6 +6,7 @@ import java.util.concurrent.TimeUnit;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
+
 public final class TokenBucketBuilder {
 
     private TokenBucketBuilder() { }
@@ -18,6 +19,7 @@ public final class TokenBucketBuilder {
         private long capacity = 0;
         private long period = 0;
         private TimeUnit timeUnit = null;
+        private Clock clock = null;
 
         public Builder withCapacity(long capacity)  {
             checkArgument(capacity > 0, "Token Bucket Capacity must be greater than 0");
@@ -36,9 +38,16 @@ public final class TokenBucketBuilder {
             return this;
         }
 
+        public Builder withClock(Clock clock) {
+            this.clock = clock;
+            return this;
+        }
+
         public TokenBucket build() {
             checkNotNull(this.timeUnit, "TimeUnit must be specified");
-            return new TokenBucketImpl(Clock.systemUTC(), this.capacity, this.period, this.timeUnit);
+            if (clock == null)
+                clock = Clock.systemUTC();
+            return new TokenBucketImpl(clock, this.capacity, this.period, this.timeUnit);
         }
 
 

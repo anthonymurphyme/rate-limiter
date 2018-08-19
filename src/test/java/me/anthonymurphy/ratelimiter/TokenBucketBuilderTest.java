@@ -2,7 +2,14 @@ package me.anthonymurphy.ratelimiter;
 
 import org.junit.Test;
 
+import java.time.Clock;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.concurrent.TimeUnit;
+
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class TokenBucketBuilderTest {
 
@@ -41,6 +48,22 @@ public class TokenBucketBuilderTest {
         TokenBucketBuilder.builder()
                 .withCapacity(10)
                 .withPeriod(10).build();
+    }
+
+    @Test
+    public void testCreate() {
+        Instant periodStartTime = Instant.now();
+        final Clock clock = mock(Clock.class);
+        when(clock.instant()).thenAnswer(invocation -> periodStartTime);
+        TokenBucket bucket = TokenBucketBuilder.builder()
+                .withCapacity(10)
+                .withPeriod(10)
+                .withClock(clock)
+                .withTimeUnit(TimeUnit.MINUTES)
+                .build();
+        assertEquals(10,bucket.getAvailableTokens());
+        Instant nextRefillTime = periodStartTime.plus(10, ChronoUnit.MINUTES);
+        assertEquals(nextRefillTime,bucket.getNextRefillTime());
     }
 
 }
