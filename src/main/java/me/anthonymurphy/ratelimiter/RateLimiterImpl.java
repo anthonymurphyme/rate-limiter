@@ -49,8 +49,11 @@ public class RateLimiterImpl implements RateLimiter {
     }
 
     /*
+        Add a specific TokenBucket for a Client to the cache, which allows the caller to specify a per client rate
+        limiting strategy. Will overwrite any existing entries for the Client in the cache.
 
-
+        @param clientId unique identifier for the Client, for example Session ID, IP Address
+        @param tokenBucket previously constructed TokenBucket
      */
     @Override
     public void addClient(String clientId, TokenBucket tokenBucket){
