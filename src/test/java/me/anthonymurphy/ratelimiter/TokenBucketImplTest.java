@@ -153,8 +153,16 @@ public class TokenBucketImplTest {
     }
 
     @Test
-    public void testRefillFailsIfBeforeNextRefillTime() {
-        assertTrue(bucket.consume());
+    public void testRefillOnConsumeFailsIfBeforeNextRefillTime() {
+        bucket.consume();
+        startTime = startTime.plus(30, ChronoUnit.MINUTES);
+        bucket.consume();
+        assertEquals(CAPACITY-2, bucket.getAvailableTokens());
+    }
+
+    @Test
+    public void testManualRefillFailsIfBeforeNextRefillTime() {
+        bucket.consume();
         startTime = startTime.plus(30, ChronoUnit.MINUTES);
         bucket.refill();
         assertEquals(CAPACITY-1, bucket.getAvailableTokens());
