@@ -17,15 +17,14 @@ public class TokenBucketImplTest {
     private static final long CAPACITY = 60;
     private static final long PERIOD = 1;
     private static final TimeUnit TIME_UNIT_HOURS = TimeUnit.HOURS;
-    private Instant currentTime;
+    private Instant startTime;
     private TokenBucketImpl bucket;
-    private static final long ONE_HOUR = 60 * 60 * 1000;
 
     @Before
     public void setUp() {
-        currentTime = Instant.now();
+        startTime = Instant.now();
         final Clock clock = mock(Clock.class);
-        when(clock.instant()).thenAnswer(invocation -> currentTime);
+        when(clock.instant()).thenAnswer(invocation -> startTime);
         bucket = new TokenBucketImpl(clock, CAPACITY, PERIOD , TIME_UNIT_HOURS);
     }
 
@@ -80,24 +79,54 @@ public class TokenBucketImplTest {
 
     @Test
     public void testAfterCreationNextRefillIsOneHour() {
-        long nextRefillTime = currentTime.toEpochMilli() + ONE_HOUR;
+        Instant nextRefillTime = startTime.plus(1, ChronoUnit.HOURS);
         assertEquals(nextRefillTime,bucket.getNextRefillTime());
     }
 
     @Test
     public void testBucketIsRefilledIfAfterNextRefillTimeAndNextRefillTimeIsIncremented() {
+        Instant originalStartTime = startTime;
         assertTrue(bucket.consume());
-        currentTime = currentTime.plus(61, ChronoUnit.MINUTES);
+
+        // Move forward 2 and 1/2 hours
+        startTime = startTime.plus(150, ChronoUnit.MINUTES);
         bucket.refill();
         assertEquals(CAPACITY, bucket.getAvailableTokens());
-        long nextRefillTime = currentTime.plus(59, ChronoUnit.MINUTES).toEpochMilli();
+
+        // NextRefillTime should be original start time + 3 hours
+        Instant nextRefillTime = originalStartTime.plus(180, ChronoUnit.MINUTES);
+        assertEquals(nextRefillTime,bucket.getNextRefillTime());
+    }
+
+    @Test
+    public void testRefillFollowedByConsumeAndAttemptRefill() {
+        Instant originalStartTime = startTime;
+        assertTrue(bucket.consume());
+
+        // Move forward 2 and 1/2 hours
+        startTime = startTime.plus(150, ChronoUnit.MINUTES);
+        bucket.refill();
+        assertEquals(CAPACITY, bucket.getAvailableTokens());
+
+        // Move forward 1 min
+
+        startTime = startTime.plus (1, ChronoUnit.MINUTES);
+
+        bucket.consume();
+        bucket.refill();
+
+        assertEquals(CAPACITY-1, bucket.getAvailableTokens());
+
+
+        // NextRefillTime should be original start time + 3 hours
+        Instant nextRefillTime = originalStartTime.plus(180, ChronoUnit.MINUTES);
         assertEquals(nextRefillTime,bucket.getNextRefillTime());
     }
 
     @Test
     public void testRefillFailsIfBeforeNextRefillTime() {
         assertTrue(bucket.consume());
-        currentTime = currentTime.plus(30, ChronoUnit.MINUTES);
+        startTime = startTime.plus(30, ChronoUnit.MINUTES);
         bucket.refill();
         assertEquals(CAPACITY-1, bucket.getAvailableTokens());
     }
@@ -105,7 +134,7 @@ public class TokenBucketImplTest {
 
     @Test
     public void testRefillAtCapacity() {
-        currentTime = currentTime.plus(61, ChronoUnit.MINUTES);
+        startTime = startTime.plus(61, ChronoUnit.MINUTES);
         bucket.refill();
         assertEquals(CAPACITY, bucket.getAvailableTokens());
     }

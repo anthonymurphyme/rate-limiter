@@ -1,6 +1,8 @@
 package me.anthonymurphy.ratelimiter;
 
 
+import java.time.Instant;
+
 /**
  * Using a Token Bucket algorithm to limit access to resources
  *
@@ -18,7 +20,7 @@ public interface TokenBucket {
     long getAvailableTokens();
     boolean consume();
     void refill();
-    long getNextRefillTime();
+    Instant getNextRefillTime();
 
 
 }
