@@ -18,6 +18,7 @@ public interface TokenBucket {
     long getAvailableTokens();
     boolean consume();
     void refill();
+    long getNextRefillTime();
 
 
 }

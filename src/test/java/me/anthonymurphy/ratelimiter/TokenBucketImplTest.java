@@ -1,53 +1,76 @@
 package me.anthonymurphy.ratelimiter;
 
+import org.junit.Before;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import java.time.Clock;
+import java.time.Instant;
+import java.util.concurrent.TimeUnit;
+
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class TokenBucketImplTest {
 
     private static final long CAPACITY = 60;
+    private static final long PERIOD = 1;
+    private static final TimeUnit TIME_UNIT_HOURS = TimeUnit.HOURS;
+    private Instant currentTime;
+    private TokenBucketImpl bucket;
+
+    @Before
+    public void setUp() {
+        currentTime = Instant.now();
+        final Clock clock = mock(Clock.class);
+        when(clock.instant()).thenAnswer((invocation) -> currentTime);
+        bucket = new TokenBucketImpl(clock, CAPACITY, PERIOD , TIME_UNIT_HOURS);
+    }
+
 
     @Test
     public void testGetCapacity() {
-        TokenBucketImpl bucket = new TokenBucketImpl(CAPACITY);
+
         assertEquals(CAPACITY,bucket.getCapacity());
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testNegativeCapacityCreation() {
-        new TokenBucketImpl(-1);
+        new TokenBucketImpl(Clock.systemUTC(), -1, PERIOD , TIME_UNIT_HOURS);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testZeroCapacityCreate() {
-        new TokenBucketImpl(0);
+        new TokenBucketImpl(Clock.systemUTC(),0, PERIOD , TIME_UNIT_HOURS);
     }
 
     @Test
     public void testAvailableTokensAfterCreation() {
-        TokenBucketImpl bucket = new TokenBucketImpl(CAPACITY);
         assertEquals(CAPACITY,bucket.getAvailableTokens());
     }
     @Test
     public void testConsumingTokenDecreasesAvailableTokens() {
-        TokenBucketImpl bucket = new TokenBucketImpl(CAPACITY);
         assertTrue(bucket.consume());
         assertEquals(CAPACITY-1,bucket.getAvailableTokens());
     }
 
     @Test
+    public void testConsuminTwoTokensDecreasesAvailableTokens() {
+        assertTrue(bucket.consume());
+        assertTrue(bucket.consume());
+        assertEquals(CAPACITY-2,bucket.getAvailableTokens());
+    }
+
+    @Test
     public void testConsumingLastRemainingTokenDecreasesAvailableTokensToZero() {
-        TokenBucketImpl bucket = new TokenBucketImpl(1);
+        bucket = new TokenBucketImpl(Clock.systemUTC(), 1, PERIOD , TIME_UNIT_HOURS);
         assertTrue(bucket.consume());
         assertEquals(0,bucket.getAvailableTokens());
     }
 
     @Test
     public void testConsumingTokenWhenNoAvailableTokens() {
-        TokenBucketImpl bucket = new TokenBucketImpl(1);
+        bucket = new TokenBucketImpl(Clock.systemUTC(), 1, PERIOD , TIME_UNIT_HOURS);
         assertTrue(bucket.consume());
         assertFalse(bucket.consume());
         assertEquals(0,bucket.getAvailableTokens());
@@ -55,7 +78,6 @@ public class TokenBucketImplTest {
 
     @Test
     public void testRefillResetsBucketToCapacity() {
-        TokenBucketImpl bucket = new TokenBucketImpl(CAPACITY);
         assertTrue(bucket.consume());
         bucket.refill();
         assertEquals(CAPACITY, bucket.getAvailableTokens());
@@ -63,9 +85,15 @@ public class TokenBucketImplTest {
 
     @Test
     public void testRefillAtCapacity() {
-        TokenBucketImpl bucket = new TokenBucketImpl(CAPACITY);
         bucket.refill();
         assertEquals(CAPACITY, bucket.getAvailableTokens());
+    }
+
+    @Test
+    public void testAfterCreationNextRefillIsOneHour() {
+        long oneHour = 60 * 60 * 1000;
+        long nextRefillTime = currentTime.toEpochMilli() + oneHour;
+        assertEquals(nextRefillTime,bucket.getNextRefillTime());
     }
 
 

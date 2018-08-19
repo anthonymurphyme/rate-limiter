@@ -1,16 +1,28 @@
 package me.anthonymurphy.ratelimiter;
 
+import java.time.Clock;
+import java.time.Instant;
+import java.util.concurrent.TimeUnit;
+
 import static com.google.common.base.Preconditions.checkArgument;
+
 
 public class TokenBucketImpl implements TokenBucket {
 
     private final long capacity;
     private long availableTokens;
+    private long lastRefillTimestamp;
+    private long nextRefillTimestamp;
+    private final Clock clock;
 
-    TokenBucketImpl(long capacity){
+
+    TokenBucketImpl(Clock clock, long capacity, long period, TimeUnit unit){
         checkArgument(capacity > 0, "Token Bucket Capacity must be greater than 0");
         this.capacity = capacity;
         this.availableTokens = capacity;
+        this.clock = clock;
+        this.lastRefillTimestamp = Instant.now(clock).toEpochMilli();
+        this.nextRefillTimestamp = lastRefillTimestamp + (TimeUnit.MILLISECONDS.convert(period, unit));
     }
 
     /*
@@ -58,6 +70,16 @@ public class TokenBucketImpl implements TokenBucket {
     @Override
     public void refill() {
         availableTokens = capacity;
+    }
+
+    /*
+        Returns the timestamp for the next refill of bucket
+
+        @return timestamp for next refill
+     */
+    @Override
+    public long getNextRefillTime() {
+        return nextRefillTimestamp;
     }
 
 }
