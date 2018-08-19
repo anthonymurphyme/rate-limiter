@@ -17,6 +17,7 @@ public interface TokenBucket {
     long getCapacity();
     long getAvailableTokens();
     boolean consume();
+    void refill();
 
 
 }

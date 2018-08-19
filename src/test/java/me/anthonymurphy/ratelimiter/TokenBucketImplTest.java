@@ -53,4 +53,13 @@ public class TokenBucketImplTest {
         assertEquals(0,bucket.getAvailableTokens());
     }
 
+    @Test
+    public void testRefillResetsBucketToCapacity() {
+        TokenBucketImpl bucket = new TokenBucketImpl(CAPACITY);
+        assertTrue(bucket.consume());
+        bucket.refill();
+        assertEquals(CAPACITY, bucket.getAvailableTokens());
+    }
+
+
 }

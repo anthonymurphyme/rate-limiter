@@ -50,4 +50,14 @@ public class TokenBucketImpl implements TokenBucket {
 
         return false;
     }
+
+    /*
+        Simple refill strategy, reset the bucket to capacity
+
+     */
+    @Override
+    public void refill() {
+        availableTokens = capacity;
+    }
+
 }
