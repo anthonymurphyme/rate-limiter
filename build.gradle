@@ -16,3 +16,8 @@ dependencies {
     compile group: 'junit', name: 'junit', version: '4.12'
     compile group: 'org.mockito', name: 'mockito-core', version: '2.+'
 }
+
+buildScan {
+    termsOfServiceUrl = 'https://gradle.com/terms-of-service'
+    termsOfServiceAgree = 'yes'
+}
