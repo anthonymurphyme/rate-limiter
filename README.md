@@ -1,4 +1,4 @@
-# Introduction
+# Introduction [![Build Status](https://travis-ci.org/anthonymurphyme/rate-limiter.svg?branch=master)](https://travis-ci.org/anthonymurphyme/rate-limiter)
 This module provides a simple rate-limiting library that stops a particular client from making too many requests within a particular period of time. It uses:
 * A Simple Token Bucket algorithm to allocate access tokens to a client. On request from a client the RateLimiter tries to consume a token from the bucket, if successful access may be granted otherwise access should be denied. In this simple case, tokens are replenished to capicity on the first request after current time period has elasped.
 * A local in memory cache to store clientID and the associated TokenBucket.
