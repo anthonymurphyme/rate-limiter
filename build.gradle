@@ -17,7 +17,3 @@ dependencies {
     compile group: 'org.mockito', name: 'mockito-core', version: '2.+'
 }
 
-buildScan {
-    termsOfServiceUrl = 'https://gradle.com/terms-of-service'
-    termsOfServiceAgree = 'yes'
-}
